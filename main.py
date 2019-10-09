@@ -3,7 +3,7 @@ import json
 from src.esim import ESIM
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 
 class Runner(object):
@@ -13,7 +13,7 @@ class Runner(object):
 
     def run(self):
         esim_obj = ESIM(self.config)
-        esim_obj.train_()
+        esim_obj.train()
 
 
 if __name__ == '__main__':

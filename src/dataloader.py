@@ -2,6 +2,7 @@
 import os
 import pandas as pd
 import tensorflow as tf
+import numpy as np
 
 
 class DataLoader(object):
@@ -38,7 +39,7 @@ class DataLoader(object):
 
         return p_list, h_list
 
-    def load_char_data(self, data_size=None):
+    def load_char_data(self, data_size=None, duplicate=False):
         path = os.path.join(os.path.dirname(__file__), '../' + self.data_path)
         df = pd.read_csv(path)
         p = df['sentence1'].values[0:data_size]
@@ -47,7 +48,16 @@ class DataLoader(object):
 
         p_c_index, h_c_index = self.char_index(p, h)
 
-        return (p_c_index, h_c_index), label
+        # duplication
+        if duplicate:
+            p_c_index_ = np.vstack((p_c_index, h_c_index))
+            h_c_index_ = np.vstack((h_c_index, p_c_index))
+            label_ = np.hstack((label, label))
+            return (p_c_index_, h_c_index_), label_
+        else:
+            return (p_c_index, h_c_index), label
+
+
 
 
 if __name__ == '__main__':

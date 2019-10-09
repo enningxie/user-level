@@ -74,10 +74,12 @@ class ESIM(object):
         self.train_data_path = config['train_data_path']
         self.dev_data_path = config['dev_data_path']
         self.test_data_path = config['test_data_path']
+        # save/restore model
+        self.model_path = config['model_path']
 
     def get_dataset(self, data_path, is_training=False, return_steps=False):
         tmp_dataloader = DataLoader(data_path, self.max_len)
-        x_data, y_data = tmp_dataloader.load_char_data()
+        x_data, y_data = tmp_dataloader.load_char_data(duplicate=True)
         tmp_dataset = tf.data.Dataset.from_tensor_slices((x_data, y_data))
         if is_training:
             tmp_dataset = tmp_dataset.shuffle(buffer_size=1024).batch(self.batch_size)
@@ -180,17 +182,20 @@ class ESIM(object):
         val_acc_metric = tf.keras.metrics.BinaryAccuracy()
 
         # prepare the training dataset.
-        train_dataset = self.get_dataset(self.train_data_path, is_training=True)
+        train_dataset, train_steps = self.get_dataset(self.train_data_path, is_training=True, return_steps=True)
 
         # Prepare the validation dataset.
-        val_dataset = self.get_dataset(self.dev_data_path)
+        val_dataset, val_steps = self.get_dataset(self.dev_data_path, return_steps=True)
 
         # Iterate over epochs.
+        best_val_acc = 0.
         for epoch in range(self.epochs):
-            print('Start of epoch %d' % (epoch,))
+            print('*********************')
+            print('Epoch {} training...'.format(epoch))
+            training_bar = tf.keras.utils.Progbar(train_steps, stateful_metrics=['loss', 'acc'])
 
             # Iterate over the batches of the dataset.
-            for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
+            for train_step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     logits = self.model(x_batch_train)
                     loss_value = loss_fn(y_batch_train, logits)
@@ -200,26 +205,37 @@ class ESIM(object):
                 # Update training metric.
                 train_acc_metric(y_batch_train, logits)
 
-                # Log every 200 batches.
-                if step % 20 == 0:
-                    print('Training loss (for one batch) at step %s: %s' % (step, float(loss_value)))
-                    print('Training acc (for one batch) at step %s: %s' % (step, float(train_acc_metric.result())))
-                    print('Seen so far: %s samples' % ((step + 1) * self.batch_size))
+                # Logging
+                training_bar.update(train_step + 1,
+                                    values=[('loss', float(loss_value)), ('acc', float(train_acc_metric.result()))])
 
-            # Display metrics at the end of each epoch.
-            train_acc = train_acc_metric.result()
-            print('Training acc over epoch: %s' % (float(train_acc),))
+                # # Log every 200 batches.
+                # if step % 20 == 0:
+                #     print('Training loss (for one batch) at step %s: %s' % (step, float(loss_value)))
+                #     print('Training acc (for one batch) at step %s: %s' % (step, float(train_acc_metric.result())))
+                #     print('Seen so far: %s samples' % ((step + 1) * self.batch_size))
+
+            # # Display metrics at the end of each epoch.
+            # train_acc = train_acc_metric.result()
+            # print('Training acc over epoch: %s' % (float(train_acc),))
+            # print('Epoch {} validating...'.format(epoch))
             # Reset training metrics at the end of each epoch
             train_acc_metric.reset_states()
-
+            validating_bar = tf.keras.utils.Progbar(val_steps, stateful_metrics=['val_acc'])
             # Run a validation loop at the end of each epoch.
-            for x_batch_val, y_batch_val in val_dataset:
+            for val_step, (x_batch_val, y_batch_val) in enumerate(val_dataset):
                 val_logits = self.model(x_batch_val)
                 # Update val metrics
                 val_acc_metric(y_batch_val, val_logits)
+                # Logging
+                validating_bar.update(val_step + 1, values=[('val_acc', float(val_acc_metric.result()))])
             val_acc = val_acc_metric.result()
+            # Save the best model with the highest verification accuracy
+            if val_acc > best_val_acc:
+                print('model saving...')
+                self.model.save_weights(self.model_path)
             val_acc_metric.reset_states()
-            print('Validation acc: %s' % (float(val_acc),))
+            # print('Validation acc: %s' % (float(val_acc),))
 
 
 if __name__ == '__main__':
