@@ -1,7 +1,7 @@
 # coding=utf-8
 import json
-from src.esim import ESIM
 import os
+from src.intention_mapping import IntentionMapper
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
@@ -12,10 +12,12 @@ class Runner(object):
             self.config = json.load(fr)
 
     def run(self):
-        esim_obj = ESIM(self.config)
-        esim_obj.train()
+        intention_mapper = IntentionMapper(self.config)
+        return intention_mapper.mapping()
 
 
 if __name__ == '__main__':
     tmp_runner = Runner('data/config.json')
-    tmp_runner.run()
+    targets_set, mapped_ids_set = tmp_runner.run()
+    print(targets_set)
+    print(mapped_ids_set)
