@@ -7,9 +7,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 
 class Runner(object):
-    def __init__(self, config_path):
-        with open(config_path, "r") as fr:
-            self.config = json.load(fr)
+    def __init__(self, config):
+        self.config = config
 
     def run(self):
         intention_mapper = IntentionMapper(self.config)
@@ -17,7 +16,8 @@ class Runner(object):
 
 
 if __name__ == '__main__':
-    tmp_runner = Runner('data/config.json')
+    with open('data/config.json', "r") as fr:
+        tmp_config = json.load(fr)
+    tmp_runner = Runner(tmp_config)
     targets_set, mapped_ids_set = tmp_runner.run()
-    print(targets_set)
-    print(mapped_ids_set)
+    # todo user: liangyang
