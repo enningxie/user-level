@@ -242,3 +242,4 @@ if __name__ == "__main__":
     sen = "宝马x3红色豪华版2.0t4座;奥迪a6豪华版"
     car_info = Ner.ner_log_api(sen)
     print(car_info)
+    print(type(car_info))

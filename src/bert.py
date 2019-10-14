@@ -126,4 +126,4 @@ class BertRunner(object):
 
 if __name__ == '__main__':
     bert_runner = BertRunner()
-    print(bert_runner.predict(['老板不在'], ['不是本人']))
+    print(bert_runner.predict(['哦好的'], ['不推荐给你']))

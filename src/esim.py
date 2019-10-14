@@ -115,7 +115,7 @@ class ESIM(object):
 
     def predict(self, sent1, sent2):
         p_pred, h_pred = self.dataloader.char_index(sent1, sent2, self.configer.maxlen)
-        print(self.model.predict([p_pred, h_pred]).item())
+        return self.model.predict([p_pred, h_pred], batch_size=1024)
 
 
 if __name__ == '__main__':

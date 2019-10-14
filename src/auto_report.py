@@ -4,8 +4,8 @@ from src.Ner_tag import Ner_tag
 
 
 class AutoReport:
-    def __init__(self, request):
-        dict_alpha = json.load(open('customer_intention.json', 'r'))
+    def __init__(self):
+        dict_alpha = json.load(open('data/customer_intention.json', 'r'))
         self.label_1 = set(dict_alpha['label_1'])
         self.label_2 = set(dict_alpha['label_2'])
         self.label_3 = set(dict_alpha['label_3'])
@@ -19,7 +19,6 @@ class AutoReport:
         self.label_num_2_B_C = dict_alpha['label_num_2_B_C']
         self.label_num_3_B = dict_alpha['label_num_3_B']
         # self.url = dict_alpha['url']
-        self.preprocess_request(request)
         self.ner_obj = Ner_tag('data/kg.json')
 
     def preprocess_request(self, request):
@@ -30,7 +29,8 @@ class AutoReport:
         dialogue_text = dialogue_data['dialogueText']
         self.user_talk = [x['talkText'] for x in dialogue_text if x['talkingType'] == 2]
 
-    def customer_intention(self, label):
+    def customer_intention(self, label, request):
+        self.preprocess_request(request)
         if self.call_mark != self.callMark_alpha:
             return 'E'
         else:

@@ -8,9 +8,8 @@ import numpy as np
 
 
 class IntentionMapper(object):
-    def __init__(self, schema, request=None):
+    def __init__(self, schema):
         self.preprocess_schema(schema)
-        self.preprocess_request(request)
         self.pattern = r',|\.|;|\?|\~|!|，|。|、|；|·|！| |…|\n|\？|\～|\\n'
         self.bert = BertRunner()
         self.esim = ESIM(ESIMConfig())
@@ -53,7 +52,7 @@ class IntentionMapper(object):
         self.hit_utterances = []
         self.hit_dialogUuids = []
         # self.hit_intention_ids = []
-        for tmp_intent_data in dialogue_data['intentionData']:
+        for tmp_intent_data in raw_request['intentionData']:
             # 意图匹配成功
             if tmp_intent_data['matchedStatus'] == 1:
                 # self.hit_intention_ids.append(tmp_intent_data['matchedIntentionId'])
@@ -70,7 +69,8 @@ class IntentionMapper(object):
         return [tmp_str.strip() for tmp_str in re.split(self.pattern, source_ai_utterance) if
                 len(tmp_str.strip()) > min_len]
 
-    def mapping(self, esim_threshold=0.5, bert_threshold=0.2):
+    def mapping(self, request, esim_threshold=0.5, bert_threshold=0.2):
+        self.preprocess_request(request)
         targets = []
         mapped_ids = []
         # esim part
