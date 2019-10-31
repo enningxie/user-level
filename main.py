@@ -23,7 +23,7 @@ class Runner(object):
             response_json['targets'] = list(targets_set)
             response_json['user_level'] = user_level
             response_json['car_info'] = car_info
-        except (IOError, ImportError, ValueError, KeyError) as e:
+        except Exception as e:
             response_json["msg"] = str(e)
         return response_json
 
@@ -31,9 +31,9 @@ class Runner(object):
 if __name__ == '__main__':
     with open('data/schema_01.json', "r") as fr:
         tmp_config = json.load(fr)
-    with open('data/request.json', "r") as fr:
+    with open('data/request_02.json', "r") as fr:
         tmp_request = json.load(fr)
-    tmp_runner = Runner(tmp_config)
+    tmp_runner = Runner(tmp_request['schema'])
     response = tmp_runner.run(tmp_request)
     print(response)
 
